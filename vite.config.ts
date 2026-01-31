@@ -23,17 +23,13 @@ export default defineConfig(({ command, mode }) => {
     ],
     resolve: {
       alias: {
-        "@": path.resolve("./src"), // 相对路径别名配置，使用@替代src
-        
-        // 强制 alias 解决 v-code-diff 入口解析失败（常见修复方案）
-        // 尝试 dist/index.js（大多数组件包用这个）
-        'v-code-diff': path.resolve(__dirname, 'node_modules/v-code-diff/dist/index.js'),
-        
-        // 如果上面不行，备选1：直接指向 src/index.js（如果包有源码暴露）
+        "@": path.resolve("./src"), // 原有别名：@ 指向 src
+
+        // 【关键修复】强制指向 v-code-diff 的可能入口，绕过 package.json 的错误 exports
+        'v-code-diff': path.resolve(__dirname, 'node_modules/v-code-diff/index.js')
+        // 如果这个路径不行，可以换成下面注释的（逐个测试）：
         // 'v-code-diff': path.resolve(__dirname, 'node_modules/v-code-diff/src/index.js'),
-        
-        // 备选2：如果包用 ESM 格式（.mjs）
-        // 'v-code-diff': path.resolve(__dirname, 'node_modules/v-code-diff/dist/index.mjs'),
+        // 'v-code-diff': path.resolve(__dirname, 'node_modules/v-code-diff/lib/index.js'),
       }
     },
     server: {
