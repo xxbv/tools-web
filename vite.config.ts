@@ -2,9 +2,8 @@ import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import path from 'path'
-// import { seoperender } from "./ssr.config";  // 保持注释，防止潜在问题
+// import { seoperender } from "./ssr.config";  // 保持注释，避免预渲染问题
 
-// https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
   let env = loadEnv(mode, process.cwd())
   return {
@@ -17,12 +16,12 @@ export default defineConfig(({ command, mode }) => {
         iconDirs: [path.resolve(process.cwd(), 'src/assets/icons')],
         symbolId: 'icon-[dir]-[name]',
       }),
-      // seoperender()  // 注释掉，避免预渲染导致构建中断
+      // seoperender()  // 注释掉
     ],
     resolve: {
       alias: {
-        "@": path.resolve("./src")  // 只保留这个原有别名
-        // 没有任何 v-code-diff 相关配置了
+        "@": path.resolve("./src")
+        // 没有任何 v-code-diff 相关内容
       }
     },
     build: {
