@@ -2,7 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import path from 'path'
-import { seoperender } from "./ssr.config";
+// import { seoperender } from "./ssr.config";  // ← 临时注释掉，防止 prerender 导致构建失败
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
@@ -19,18 +19,22 @@ export default defineConfig(({ command, mode }) => {
         // Specify symbolId format
         symbolId: 'icon-[dir]-[name]',
       }),
-      seoperender()
+      // seoperender()  // ← 注释掉这一行，禁用预渲染插件（常见导致 Cloudflare Pages 隐形失败/超时/内存超）
     ],
     resolve: {
       alias: {
         "@": path.resolve("./src"), // 原有别名：@ 指向 src
-
-        // 【关键修复】强制指向 v-code-diff 的可能入口，绕过 package.json 的错误 exports
-        'v-code-diff': path.resolve(__dirname, 'node_modules/v-code-diff/index.js')
-        // 如果这个路径不行，可以换成下面注释的（逐个测试）：
-        // 'v-code-diff': path.resolve(__dirname, 'node_modules/v-code-diff/src/index.js'),
-        // 'v-code-diff': path.resolve(__dirname, 'node_modules/v-code-diff/lib/index.js'),
+        // v-code-diff alias 已移除，因为依赖已删
       }
+    },
+    build: {
+      sourcemap: false,          // 关闭 sourcemap，减少构建内存消耗
+      minify: 'terser',          // 使用 terser 压缩（默认 esbuild 更快，但 terser 更稳）
+      terserOptions: {
+        compress: true,
+        mangle: true,
+      },
+      chunkSizeWarningLimit: 2000,  // 增大 chunk 警告阈值，避免无关警告
     },
     server: {
       host: env.VITE_HOST,
@@ -38,11 +42,6 @@ export default defineConfig(({ command, mode }) => {
         [env.VITE_APP_BASE_API]: {
           target: env.VITE_SERVE,
           changeOrigin: true,
-          // bypass(req, res, options) {
-          //   const proxyUrl = new URL(options.rewrite(req.url) || '', (options.target) as string)?.href || ''
-          //   req.headers['x-req-proxyUrl'] = proxyUrl;
-          //   res.setHeader("x-res-proxyUrl", proxyUrl)
-          // }
         },
       }
     }
